@@ -1,2 +1,2 @@
 # EndoNeuro-dsPIC
-dsPIC firmware for the endoNeuro project
+dsPIC firmware for the EndoNeuro project
