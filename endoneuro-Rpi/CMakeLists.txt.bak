@@ -1,0 +1,106 @@
+cmake_minimum_required(VERSION 3.10)
+
+#Set up project
+project(EndoNeuro VERSION 1.0)
+
+#Set executable
+set(SOURCES
+    src/main.cpp
+	src/collection/video.cpp
+	src/collection/data.cpp
+	src/libs/Spi.cpp
+	src/collection/transfer.cpp
+
+)
+
+add_executable(
+	${PROJECT_NAME}
+	src/main.cpp
+	src/collection/video.cpp
+	src/collection/data.cpp
+	src/collection/transfer.cpp
+
+	src/libs/Spi.cpp
+
+)
+
+set(HEADERS
+    src/collection/video.h
+	src/collection/data.h
+	src/libs/Spi.h
+	src/collection/transfer.h
+
+    )
+
+
+
+
+
+
+
+#Set C++17
+target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17)
+set_target_properties(${PROJECT_NAME} PROPERTIES CXX_EXTENSIONS OFF)
+
+#Set flags
+if(MSVC)
+  	target_compile_options(${PROJECT_NAME} PRIVATE
+    	/W4 /WX)
+else()
+  	target_compile_options(${PROJECT_NAME} PRIVATE
+		-Wall -Wextra -pedantic)
+endif()
+
+
+INCLUDE_DIRECTORIES(;/usr/local/include)
+LINK_DIRECTORIES("/usr/local/lib")
+INCLUDE_DIRECTORIES(src/libs)
+INCLUDE_DIRECTORIES(${OpenCV_INCLUDE_DIRS})
+INCLUDE_DIRECTORIES(${pigpio_INCLUDE_DIR})
+SET(raspicam_LIBS /opt/vc/lib/libmmal_core.so;/opt/vc/lib/libmmal_util.so;/opt/vc/lib/libmmal.so raspicam)
+SET(raspicam_FOUND "YES")
+
+SET(raspicam_CV_FOUND  "YES")
+SET(raspicam_CV_LIBS /opt/vc/lib/libmmal_core.so;/opt/vc/lib/libmmal_util.so;/opt/vc/lib/libmmal.so raspicam opencv_calib3d;opencv_core;opencv_dnn;opencv_features2d;opencv_quality;opencv_flann;opencv_gapi;opencv_highgui;opencv_imgcodecs;opencv_imgproc;opencv_ml;opencv_objdetect;opencv_photo;opencv_stitching;opencv_video;opencv_videoio;opencv_aruco;opencv_bgsegm;opencv_bioinspired;opencv_ccalib;opencv_datasets;opencv_dnn_objdetect;opencv_dpm;opencv_face;opencv_freetype;opencv_fuzzy;opencv_hfs;opencv_img_hash;opencv_line_descriptor;opencv_optflow;opencv_phase_unwrapping;opencv_plot;opencv_reg;opencv_rgbd;opencv_saliency;opencv_shape;opencv_stereo;opencv_structured_light;opencv_superres;opencv_surface_matching;opencv_text;opencv_tracking;opencv_videostab;opencv_xfeatures2d;opencv_ximgproc;opencv_xobjdetect;opencv_xphoto raspicam_cv)
+
+SET(raspicam_VERSION        0.1.2)
+SET(raspicam_VERSION_MAJOR  0)
+SET(raspicam_VERSION_MINOR  1)
+SET(raspicam_VERSION_PATCH  2)
+
+#Find libraries
+find_package(Threads)
+find_package(OpenCV)
+
+
+find_path(pigpio_INCLUDE_DIR 
+	NAMES pigpio.h pigpiod_if.h pigpiod_if2.h
+	HINTS /usr/local/include)
+	
+find_library(pigpio_LIBRARY 
+	NAMES libpigpio.so
+	HINTS /usr/local/lib)
+find_library(pigpiod_if_LIBRARY 
+	NAMES libpigpiod_if.so
+	HINTS /usr/local/lib)
+find_library(pigpiod_if2_LIBRARY 
+	NAMES libpigpiod_if2.so
+	HINTS /usr/local/lib)
+    
+
+set(pigpio_INCLUDE_DIRS ${pigpio_INCLUDE_DIR})
+set(pigpio_INCLUDES     ${pigpio_INCLUDE_DIR})
+
+#Finally
+target_link_libraries(
+	${PROJECT_NAME}
+	Threads::Threads
+	${raspicam_LIBS}
+	${raspicam_CV_LIBS}
+	${OpenCV_LIBS}
+	pigpio
+	pthread
+	atomic
+	bcm2835
+	stdc++fs
+)
