@@ -24,7 +24,7 @@ volatile int16_t    rpi_RxDataNb = 0;
 #define SOF 0x55
 #define EOF 0xAA
 
-void __attribute__((__interrupt__,__auto_psv__)) _SPI1Interrupt() {
+void __attribute__((__interrupt__,__no_auto_psv__)) _SPI1Interrupt() {
     uint8_t data;
     
     IFS0bits.SPI1IF = 0;

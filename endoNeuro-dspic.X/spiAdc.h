@@ -21,12 +21,8 @@
 #define CHANNEL2    0xC800
 #define CHANNEL3    0xCC00
 
-extern volatile uint16_t spi2IsrData;
-extern volatile uint16_t newSampleFlag;
-
 void spiAdcInit();
-uint16_t adcRead(uint16_t channel);
-
+uint16_t adcSample(uint16_t nextChannel);
 
 
 #endif	/* SPIADC_H */

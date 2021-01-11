@@ -12,19 +12,10 @@
 #include "buffer.h"
 
 
+
+
+
 void adcSpiWriteRead(uint16_t *data, uint16_t length);
-
-volatile uint16_t adcCurChannel = 0;
-volatile uint16_t tmr2Channels[4] = {CHANNEL0, CHANNEL1, CHANNEL2, CHANNEL3};
-
-volatile enum {
-    WORD0,
-    WORD1
-} adcSpiState = WORD0;
-
-volatile uint16_t spi2IsrData = 0;
-volatile uint16_t newSampleFlag = 0;
-
 
 void spiAdcInit() {
     uint16_t data[2];
@@ -46,8 +37,9 @@ void spiAdcInit() {
     SPI2CON1bits.CKE = 0;       // mode 0,0
     SPI2CON1bits.CKP = 0;       // mode 0,0
     
-    SPI2CON1bits.PPRE = 1;      // Primary prescaler 16:1
-    SPI2CON1bits.SPRE = 2;      // Secondary prescaler 6:1 => 416.67kHz
+    // ADS868x max SPI freq = 17MHz
+    SPI2CON1bits.PPRE = 2;      // Primary prescaler 4:1
+    SPI2CON1bits.SPRE = 6;      // Secondary prescaler 2:1 => 5MHz
     
     SPI2CON1bits.MSTEN = 1;     // master mode
     SPI2STATbits.SPIEN = 1;     // enable the SPI
@@ -67,46 +59,27 @@ void spiAdcInit() {
     data[0] = 0x1101;
     data[1] = 0;
     adcSpiWriteRead(data, 2);   // Channel 3 voltage range 0 -> 2.5*Vref ==> 10.24V
+    data[0] = CHANNEL0;
+    data[1] = 0;
+    adcSpiWriteRead(data, 2);   // Channel 0 will be the next to be sampled
     
-    _SPI2IE = 1;
+    //_SPI2IE = 1;
 }
 
 
 void __attribute__((__interrupt__,__auto_psv__)) _T2Interrupt() { 
-    _LATB8 = 1;
-
     _T2IF = 0;
-    
-    ADC_CE_PIN = 0;
-    adcSpiState = WORD0;
-    SPI2BUF = tmr2Channels[adcCurChannel++];
-    if (adcCurChannel > 3) {
-        adcCurChannel = 0;
-    }
-    
-    _LATB8 = 0;
 }
 
 
 void __attribute__((__interrupt__,__auto_psv__)) _SPI2Interrupt() {
     _SPI2IF = 0;
-    switch (adcSpiState) {
-        case WORD0:
-            SPI2BUF = 0;
-            SPI2BUF;
-            adcSpiState = WORD1;
-            break;
-        case WORD1:
-            spi2IsrData = SPI2BUF;
-            newSampleFlag = 1;
-            ADC_CE_PIN = 1;
-            break;
-    }
 }
 
 
 void adcSpiWriteRead(uint16_t *data, uint16_t length) {
     uint16_t i;
+    
     ADC_CE_PIN = 0;
     for (i=0; i<length; i++) {
         while(SPI2STATbits.SPITBF == 1);    // Wait for Tx buffer to be empty before writing  in it
@@ -118,12 +91,21 @@ void adcSpiWriteRead(uint16_t *data, uint16_t length) {
     ADC_CE_PIN = 1;
 }
 
-/*
-uint16_t adcRead(uint16_t channel) {
-    uint16_t data[2];
+
+uint16_t adcSample(uint16_t nextChannel) {
+    ADC_CE_PIN = 0;
+    while(SPI2STATbits.SPITBF == 1);    // Wait for Tx buffer to be empty before writing  in it
+    SPI2BUF = nextChannel;
+    while(_SPI2IF == 0);    // Wait for Rx buffer to be filled before reading it
+    _SPI2IF = 0;
+    SPI2BUF;
+
+    while(SPI2STATbits.SPITBF == 1);    // Wait for Tx buffer to be empty before writing  in it
+    SPI2BUF = 0;
+    while(_SPI2IF == 0);    // Wait for Rx buffer to be filled before reading it
+    _SPI2IF = 0;
+
+    ADC_CE_PIN = 1;
     
-    data[0] = channel;
-    adcSpiWriteRead(data, 2);
-    
-    return (data[1]);
-}*/
+    return(SPI2BUF);
+}
