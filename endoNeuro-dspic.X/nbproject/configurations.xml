@@ -6,7 +6,6 @@
                    projectFiles="true">
       <itemPath>spiRpi.h</itemPath>
       <itemPath>hardConfig.h</itemPath>
-      <itemPath>buffer.h</itemPath>
       <itemPath>spiAdc.h</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
@@ -18,7 +17,6 @@
                    projectFiles="true">
       <itemPath>main.c</itemPath>
       <itemPath>spiRpi.c</itemPath>
-      <itemPath>buffer.c</itemPath>
       <itemPath>traps.c</itemPath>
       <itemPath>hardConfig.c</itemPath>
       <itemPath>spiAdc.c</itemPath>

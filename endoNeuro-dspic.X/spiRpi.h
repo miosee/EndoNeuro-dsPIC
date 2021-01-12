@@ -16,20 +16,25 @@
 #include "hardConfig.h"
 
 
-#define CMD_START   1
-#define CMD_STOP    2
-#define CMD_RESET   3
+#define STATUS_OK   0xAA
+#define STATUS_ERR  0xF0
+/* each packet contains 
+ * 1 ID byte (rolling from 0 to 255)
+ * 1 status byte (STATUS_ERR if all buffers are full, STATUS_OK otherwise)
+ * 2 identical sequences of 20 sampling results:
+ *   on the first sampling period, we acquire the 4 channels
+ *   on the 19 following periods, we acquire only channels 1 and 2
+ *   Each sample being coded on 2 bytes, these sequences are coded on 84 bytes
+ * Hence, one packet contains 2+2*84 = 168 bytes
+ */
+#define BUFFER_SIZE     168
+#define BUFFER_NUMBER   80
 
-
-typedef struct {
-    uint8_t cmd;
-    uint16_t param;
-} rpiCommand_t;
-
+extern volatile uint8_t buffer[BUFFER_NUMBER][BUFFER_SIZE];
+extern volatile uint16_t bufToSend;
 
 void spiRpiInit();
-uint16_t commandAvailable(void);
-rpiCommand_t getCommand(void);
+
 
 
 

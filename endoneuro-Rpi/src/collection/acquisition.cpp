@@ -26,6 +26,7 @@
 using namespace std;
 
 #define TRIGGER RPI_V2_GPIO_P1_29  // Gpio 5  for trigger
+#define DISABLE RPI_V2_GPIO_P1_31  // Gpio 6  for disable signal
 
 
 void Acquisition::shutdown() {
@@ -58,16 +59,17 @@ void Acquisition::start(LockingQueue* queue) {
     // Configure the trigger pin
     bcm2835_gpio_fsel(TRIGGER, BCM2835_GPIO_FSEL_INPT); // Set RPI pin P1-5  to be an input Trigger
     bcm2835_gpio_set_pud(TRIGGER, BCM2835_GPIO_PUD_UP);  //  with a pullup
+    // Configure the disable pin
+    bcm2835_gpio_fsel(DISABLE, BCM2835_GPIO_FSEL_OUTP);
+    bcm2835_gpio_write(DISABLE, HIGH);
 
-    // Reset acquisition to start capturing data
-    resetDspic();
-    // Start acquisition
-    startDspic();
-
+    // Enable the dsPIC to start the acquisition
+    bcm2835_gpio_write(DISABLE, LOW);
     // Main Loop
     while (active) {
         if (bcm2835_gpio_lev(TRIGGER) == 1) {
-            for (uint16_t i=0; i<PACKET_SIZE; i++) {
+            packet[0] = 0x55;
+            for (uint16_t i=1; i<PACKET_SIZE; i++) {
                 packet[i] = 0;
             }
             bcm2835_spi_transfern((char*)packet, PACKET_SIZE);
@@ -78,39 +80,9 @@ void Acquisition::start(LockingQueue* queue) {
             count++;
         }
     }
-    // Finish acquisition
-    stopDspic();
+    // Disable the dsPIC to stop the acquisition
+    bcm2835_gpio_write(DISABLE, HIGH);
     bcm2835_spi_end();
     bcm2835_close();
     lockPrintln("Acquisition finished, " + to_string(count) + " packets read.");
-}
-
-// Define acquistion parameter
-#define START_CMD           1
-#define STOP_CMD            2
-#define RESET_CMD           3
-#define SAMPLING_PERIOD_CMD 4
-
-
-// Communicate to Dspic to Start Acquisition
-void Acquisition::startDspic(void) {
-    uint8_t frame[5] = {0x55, START_CMD, 0, 0, 0xAA};
-
-    bcm2835_spi_transfern((char*)frame, 5);
-}
-
-
-// Communicate to Dspic to stop Acquisition
-void Acquisition::stopDspic(void) {
-    uint8_t frame[5] = {0x55, STOP_CMD, 0, 0, 0xAA};
-
-    bcm2835_spi_transfern((char*)frame, 5);
-}
-
-
-// Communicate to Dspic to reset Acquisition
-void Acquisition::resetDspic(void) {
-    uint8_t frame[5] = {0x55, RESET_CMD, 0, 0, 0xAA};
-
-    bcm2835_spi_transfern((char*)frame, 5);
 }

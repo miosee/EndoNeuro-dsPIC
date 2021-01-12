@@ -9,10 +9,6 @@
 #include <xc.h>
 #include <p33FJ128MC802.h>
 #include "spiAdc.h"
-#include "buffer.h"
-
-
-
 
 
 void adcSpiWriteRead(uint16_t *data, uint16_t length);
