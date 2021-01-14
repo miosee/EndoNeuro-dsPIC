@@ -17,7 +17,7 @@
 
 #define RPI_TRIG            LATBbits.LATB11
 #define RPI_TRIG_TRIS       TRISBbits.TRISB11
-#define RPI_DISABLE         LATBbits.LATB10
+#define RPI_DISABLE         PORTBbits.RB10
 #define RPI_DISABLE_TRIS    TRISBbits.TRISB10
 #define RPI_DISABLE_PUE     CNPU2bits.CN16PUE
 

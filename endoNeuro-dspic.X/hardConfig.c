@@ -28,19 +28,19 @@
 
 /* Configures PLL prescaler, PLL postscaler, PLL divisor to obtain Fosc = 80MHz
  * with the FRC oscillator (Fin = 7.37MHz). 
- * We obtain Fosc = 7.37MHz*217/(10*2) = 79.96MHz */
+ * We obtain Fosc = 7.37MHz*65/(*2) = 79.96MHz */
 void frcPllConfig(void) {
 	// Fosc = Fin*M/(N1*N2), where :
 	//		M = PLLFBD + 2
 	// 		N1 = PLLPRE + 2
 	// 		N2 = 2 x (PLLPOST + 1)
-    PLLFBD = 215;
-    CLKDIVbits.PLLPRE = 8;
+    PLLFBD = 63;
+    CLKDIVbits.PLLPRE = 1;
     CLKDIVbits.PLLPOST = 0;
 
 	// Initiate Clock Switch to FRC with PLL
-	__builtin_write_OSCCONH( 1 );
-	__builtin_write_OSCCONL( 1 );
+	__builtin_write_OSCCONH( 0x01 );
+	__builtin_write_OSCCONL( OSCCON | 0x01 );
 	// Wait for Clock switch to occur
     while (OSCCONbits.COSC != 0b001);
     // Wait for PLL to lock

@@ -17,16 +17,16 @@ volatile uint16_t bufToSend;
 
 void __attribute__((__interrupt__,__no_auto_psv__)) _SPI1Interrupt() {
     static uint16_t i = 0;
-    static uint16_t curPacket = 0;
+    static uint16_t curPacket = BUFFER_NUMBER;
     
     IFS0bits.SPI1IF = 0;
     
-    if (SPI1STATbits.SPIRBF == 1) {
+    //if (SPI1STATbits.SPIRBF == 1) {
         if (SPI1BUF == 0x55) {
             if (--bufToSend == 0) {
                 RPI_TRIG = 0;
             }
-            if (++curPacket > BUFFER_NUMBER) {
+            if (++curPacket >= BUFFER_NUMBER) {
                 curPacket = 0;
             }
             i = 0;
@@ -34,9 +34,9 @@ void __attribute__((__interrupt__,__no_auto_psv__)) _SPI1Interrupt() {
         if (i < BUFFER_SIZE) {
             SPI1BUF = buffer[curPacket][i++];
         } else {
-            SPI1BUF = 0;
+            SPI1BUF = 0x33;
         }
-    }
+    //}
 }
 
 

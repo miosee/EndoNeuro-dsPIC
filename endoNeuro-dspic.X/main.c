@@ -54,8 +54,8 @@ int main(void) {
     spiRpiInit();
     spiAdcInit();
     
-    T2CONbits.TCKPS = 1;        // prescaler = 1:8 => PR2 unit = 200nsec
-    PR2 = 124;                  // Period = 125*200ns = 100us
+    T2CONbits.TCKPS = 0;        // prescaler = 1:1 => PR2 unit = 25nsec
+    PR2 = 1999;                  // Period = 2000*25ns = 50us
     _T2IF = 0;
 
     T3CONbits.TCKPS = 3;        // prescaler = 1:256 => PR3 unit = 6.4usec
@@ -65,9 +65,11 @@ int main(void) {
     ledMax = 6;
     ledCount = 0;
     bufInit();
+    newSample = 0;
 	while(1) {
         if (_T2IF) {
             _T2IF = 0;
+//            newSample = adcSample(CHANNEL0);
             // Acquire channel 0 and set CHANNEL1 as next to be acquired
             newSample = adcSample(CHANNEL1);
             buffer[curBuffer][bufIndex++] = (uint8_t)(newSample >> 8);
@@ -95,17 +97,16 @@ int main(void) {
                 periodCount = 0;
             }
             
-            if (bufIndex > BUFFER_SIZE) {
-                bufIndex = 0;
+            if (bufIndex >= BUFFER_SIZE) {
                 if (++curBuffer > BUFFER_NUMBER) {
                     curBuffer = 0;
                 }
-                buffer[curBuffer][0] = 0;
-                buffer[curBuffer][1] = bufCount++;
-                buffer[curBuffer][2] = status;
-                bufIndex = 3;
+                buffer[curBuffer][0] = bufCount++;
+                buffer[curBuffer][1] = status;
+                bufIndex = 2;
                 bufToSend++;
                 if (bufToSend >= BUFFER_NUMBER) {
+                    bufToSend = BUFFER_NUMBER;
                     status = STATUS_ERR;
                 } else {
                     status = STATUS_OK;

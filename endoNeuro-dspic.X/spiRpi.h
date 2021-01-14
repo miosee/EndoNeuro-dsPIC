@@ -25,9 +25,9 @@
  *   on the first sampling period, we acquire the 4 channels
  *   on the 19 following periods, we acquire only channels 1 and 2
  *   Each sample being coded on 2 bytes, these sequences are coded on 84 bytes
- * Hence, one packet contains 2+2*84 = 168 bytes
+ * Hence, one packet contains 2+2*84 = 170 bytes
  */
-#define BUFFER_SIZE     168
+#define BUFFER_SIZE     170
 #define BUFFER_NUMBER   80
 
 extern volatile uint8_t buffer[BUFFER_NUMBER][BUFFER_SIZE];
