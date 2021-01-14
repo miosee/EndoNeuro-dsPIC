@@ -25,10 +25,11 @@ void AcquisitionFiles::shutdown() {
     active = false;
 }
 
+#define SIZE  42000
 
 void AcquisitionFiles::start(LockingQueue* queue) {
     string msg;
-    uint16_t i;
+    uint32_t i;
     uint64_t count = 0;
 
 
@@ -46,7 +47,7 @@ void AcquisitionFiles::start(LockingQueue* queue) {
         if ( !queue->empty() ) {
             buffer[i++] = queue->front();
             queue->pop();
-            if (i >= BUF_LENGTH) {
+            if (i >= SIZE) {
                 writeToFile();
                 count++;
                 i = 0;
@@ -62,7 +63,7 @@ void AcquisitionFiles::writeToFile() {
     string trgt = "/home/pi/Documents/DataShare/data/"; // Path
     string filename;
     uint64_t curTime;
-    uint16_t i, j;
+    uint32_t i, j;
 
     // Get current time
     curTime = std::chrono::duration_cast<std::chrono::seconds>(
@@ -70,16 +71,18 @@ void AcquisitionFiles::writeToFile() {
                     .count();
     filename = trgt + "Rpi1-" + to_string(curTime) + ".csv";
     ofstream file(filename);
-    j = 0;
-    for (i = 0; i < BUF_LENGTH; i++) {
-        file << to_string(buffer[i]);
-        j++;
-        if (j < CHANNEL_NB) {       // Separate each channel data by ,
-            file << ",";
-        } else {                    // Add endline after the last channel data
-            file << endl;
-            j = 0;
-        }
+    i = 0;
+    while (i < SIZE) {
+      // first period: 4 channels sampled
+      file << to_string(buffer[i++]) << ",";
+      file << to_string(buffer[i++]) << ",";
+      file << to_string(buffer[i++]) << ",";
+      file << to_string(buffer[i++]) << endl;
+      // The next 19 periods: 2 channels sampled 
+      for (j = 0; j < 19; j++) {
+          file << to_string(buffer[i++]) << ",";
+          file << to_string(buffer[i++]) << endl;
+      }
     }
     file.close();   // Close file when data acquisition is complete
 }

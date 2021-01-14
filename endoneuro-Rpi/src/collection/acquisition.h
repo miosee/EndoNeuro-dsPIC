@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include "lockingQueue.h"
 
-#define PACKET_SIZE 168
+#define PACKET_SIZE 171
 
 
 //#include <string>

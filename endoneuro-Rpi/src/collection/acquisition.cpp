@@ -73,7 +73,7 @@ void Acquisition::start(LockingQueue* queue) {
                 packet[i] = 0;
             }
             bcm2835_spi_transfern((char*)packet, PACKET_SIZE);
-            for (uint16_t i=0; i<PACKET_SIZE; i+=2) {
+            for (uint16_t i=3; i<PACKET_SIZE; i+=2) {
                 sample = 256*packet[i] + packet[i+1];
                 queue->push(sample);
             }
