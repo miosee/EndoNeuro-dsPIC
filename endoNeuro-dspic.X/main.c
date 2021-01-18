@@ -18,7 +18,7 @@ void bufInit() {
     bufToSend = 0;
     curBuffer = 0;
     bufCount = 0;
-    status = STATUS_OK;
+    status = NO_ERROR;
     buffer[curBuffer][0] = bufCount++;
     buffer[curBuffer][1] = status;
     bufIndex = 2;
@@ -66,6 +66,7 @@ int main(void) {
     ledCount = 0;
     bufInit();
     newSample = 0;
+    periodCount = 0;
 	while(1) {
         if (_T2IF) {
             _T2IF = 0;
@@ -98,7 +99,14 @@ int main(void) {
             }
             
             if (bufIndex >= BUFFER_SIZE) {
-                if (++curBuffer > BUFFER_NUMBER) {
+                if (periodCount !=0) {
+                    ACQ_LED = 1;
+                    status = PERIOD_ERR;
+                    periodCount = 0;
+                } else {
+                    status = NO_ERROR;
+                }
+                if (++curBuffer > BUFFER_NUMBER-1) {
                     curBuffer = 0;
                 }
                 buffer[curBuffer][0] = bufCount++;
@@ -107,9 +115,8 @@ int main(void) {
                 bufToSend++;
                 if (bufToSend >= BUFFER_NUMBER) {
                     bufToSend = BUFFER_NUMBER;
-                    status = STATUS_ERR;
-                } else {
-                    status = STATUS_OK;
+                    status |= BUFFER_ERR;
+                    ACQ_LED = 1;
                 }
                 RPI_TRIG = 1;
             }
@@ -136,6 +143,7 @@ int main(void) {
             ledMax = 6;
             bufInit();
             RPI_TRIG = 0;
+            periodCount = 0;
         }
 	}
 }

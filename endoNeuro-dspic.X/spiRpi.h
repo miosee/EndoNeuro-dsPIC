@@ -16,11 +16,12 @@
 #include "hardConfig.h"
 
 
-#define STATUS_OK   0xAA
-#define STATUS_ERR  0xF0
+#define NO_ERROR   0x00
+#define PERIOD_ERR 0x01
+#define BUFFER_ERR 0x02
 /* each packet contains 
  * 1 ID byte (rolling from 0 to 255)
- * 1 status byte (STATUS_ERR if all buffers are full, STATUS_OK otherwise)
+ * 1 error byte
  * 2 identical sequences of 20 sampling results:
  *   on the first sampling period, we acquire the 4 channels
  *   on the 19 following periods, we acquire only channels 1 and 2

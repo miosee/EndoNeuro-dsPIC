@@ -3,16 +3,17 @@
 
 #include"lockingQueue.h"
 
-#define CHANNEL_NB 4
-#define SAMPLE_PER_US 400
-#define FILE_DURATION_MS 5000ul
-#define BUF_LENGTH (1000 * FILE_DURATION_MS * CHANNEL_NB / SAMPLE_PER_US)
+#define FILE_LENGTH_IN_SEC  5
+/* The 2 VENG channels are sampled at 20kHz,
+ * The 2 EEG channels are sampled at 1kHz.
+ * -> 1 sec <=> 2*20.000 + 2*1000 = 42.000 samples */
+#define FILE_SIZE  (42000ul*FILE_LENGTH_IN_SEC)
 
 
 class AcquisitionFiles {
     private:
         bool active = true;
-        uint16_t buffer[BUF_LENGTH];
+        uint16_t buffer[FILE_SIZE];
         void writeToFile();
 
     public:
