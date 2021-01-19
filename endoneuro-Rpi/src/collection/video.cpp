@@ -1,4 +1,5 @@
 #include "video.h" // header in local directory
+#include "utils.h"
 #include <chrono>
 #include <ctime>
 #include <iostream>
@@ -9,67 +10,65 @@
 #include <syslog.h>
 #include <unistd.h>
 
-using namespace N;
+
 using namespace std;
 using namespace cv;
 
-namespace N {
-    void video::start()
-    {
 
-        std::ostringstream tmpStr;
-        pid_t tid;
-        tid = syscall(SYS_gettid);
-        cout << "Video PID :  " << tid << endl;
-        setlogmask(LOG_UPTO(LOG_NOTICE));
+void Video::shutdown() {
+    active = false;
+}
 
-        openlog("video", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL1);
+void Video::start() {
+    string msg;
+    int frame_width = 640;
+    int frame_height = 480;
+    string trgt = "/home/pi/Documents/DataShare/data/"; // Path
+    string filename;
+    uint64_t curTime, lastTime=0;
+    Mat frame;
+    uint64_t count = 0;
 
-        // Create a VideoCapture object and use camera to capture the video
-        VideoCapture cap(-1);
-        // Check if camera opened successfully
-        if (!cap.isOpened()) {
-            cout << "Error opening video stream" << endl;
-        }
-        else {
 
-            int frame_width = 640;
-            int frame_height = 480;
+    msg = "video PID :  " + to_string(syscall(SYS_gettid));
+    lockPrintln(msg);
 
-            uint64_t curTime, lastTime = 0;
-            cout << "Capturing video" << endl;
-            while (1) {
-                tmpStr.str("");
-                tmpStr << "Rpi1-";
-                curTime = std::chrono::duration_cast<std::chrono::seconds>(
-                              std::chrono::system_clock::now().time_since_epoch())
-                              .count();
-                tmpStr << curTime;
-                tmpStr << ".mp4";
-                if (lastTime != curTime) {
+    setlogmask(LOG_UPTO(LOG_NOTICE));
 
-                    VideoWriter video(tmpStr.str(),
-                                      VideoWriter::fourcc('m', 'p', '4', 'v'), 25,
-                                      Size(frame_width, frame_height));
-                    Mat frame;
-                    // Capture frame-by-frame
-                    cap >> frame;
-                    // If the frame is empty, break immediately
-                    if (frame.empty()){
-                        cout << "empty" << endl;
-                        continue;
-                    }
+    openlog("video", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL1);
 
-                    // // Write the frame into the file 'outcpp.avi'
-                    video.write(frame);
-
-                    // When everything done, release the video capture and write object
-                    video.release();
-                    lastTime = curTime;
+    // Create a VideoCapture object and use camera to capture the video
+    VideoCapture cap(-1);
+    // Check if camera opened successfully
+    if (!cap.isOpened()) {
+        lockPrintln("Error opening video stream");
+    } else {
+        while (active) {
+            // Get current time
+            curTime = std::chrono::duration_cast<std::chrono::seconds>(
+                      std::chrono::system_clock::now().time_since_epoch())
+                      .count();
+            if (lastTime != curTime) {
+                filename = trgt + "RpiVid-" + to_string(curTime) + ".mp4";
+                VideoWriter video(filename,
+                                  VideoWriter::fourcc('m', 'p', '4', 'v'), 25,
+                                  Size(frame_width, frame_height));
+                // Capture frame-by-frame
+                cap >> frame;
+                // If the frame is empty, break immediately
+                if (frame.empty()){
+                    lockPrintln("empty");
+                    continue;
                 }
+                // Write the frame into the file
+                video.write(frame);
+                // Close the file
+                video.release();
+                count++;
+                lastTime = curTime;
             }
-            cap.release();
         }
+        cap.release();
     }
-
-} // namespace  N
+    lockPrintln("Video finished, " + to_string(count) + " files created.");
+}

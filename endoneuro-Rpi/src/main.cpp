@@ -1,7 +1,6 @@
 // Import library
 #include "collection/acquisition.h"
 #include "collection/acquisitionFiles.h"
-#include "collection/transfer.h"
 #include "collection/video.h"
 #include "collection/lockingQueue.h"
 #include "collection/utils.h"
@@ -13,6 +12,7 @@
 #include <syslog.h>
 #include <thread>
 #include <unistd.h>
+#include <iostream>
 
 //#include "libs/Spi.h"
 
@@ -22,7 +22,7 @@ using namespace std;
 LockingQueue acqQueue;
 Acquisition acq;
 AcquisitionFiles acqFiles;
-Transfer transfer;
+Video video;
 
 
 void acqTask(LockingQueue *queue) {
@@ -33,9 +33,8 @@ void acqFilesTask(LockingQueue *queue) {
   acqFiles.start(queue);
 }
 
-
-void transferTask() {
-  transfer.start();
+void videoTask() {
+  video.start();
 }
 
 int main() {
@@ -64,10 +63,11 @@ int main() {
     cout << "Starting app.." << endl;
     syslog(LOG_NOTICE, "Starting Endoneuro");
 
-    // Start thread
+    // Start threads
     thread acqThread(acqTask, &acqQueue);
     thread acqFilesThread(acqFilesTask, &acqQueue);
-    //thread transThread(transferTask);
+    thread videoThread(videoTask);
+
 
     lockPrintln("Press a key to end the acquisition.");
     //char c;
@@ -77,8 +77,8 @@ int main() {
     acqThread.join();               // join the thread to wait its end before continuing
     acqFiles.shutdown();
     acqFilesThread.join();
-    //transfer.shutdown();
-    //transThread.join();
+    video.shutdown();
+    videoThread.join();
     umount2(trgt, MNT_FORCE); // Umount HDD
 
     return 0;

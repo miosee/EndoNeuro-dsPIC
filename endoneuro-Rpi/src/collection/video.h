@@ -1,13 +1,15 @@
-// my_class.h
 #ifndef VIDEO_H // include guard
 #define VIDEO_H
 
-namespace N
-{
-    class video
-    {
+
+class Video {
+    private:
+        bool active = true;
+
     public:
         void start();
-    };
-}
-#endif /* MY_CLASS_H */
+        void shutdown();
+};
+
+
+#endif

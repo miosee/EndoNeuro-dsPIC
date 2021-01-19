@@ -54,12 +54,11 @@ void AcquisitionFiles::start(LockingQueue* queue) {
             }
         }
     }
-    lockPrintln("AcquisitionFiles finished, " + to_string(count) + "  files created.");
+    lockPrintln("AcquisitionFiles finished, " + to_string(count) + " pairs of files created.");
 }
 
 
 void AcquisitionFiles::writeToFile() {
-    //string trgt = "/home/pi/Documents/localData/"; // Path
     string trgt = "/home/pi/Documents/DataShare/data/"; // Path
     string filename;
     uint64_t curTime;
