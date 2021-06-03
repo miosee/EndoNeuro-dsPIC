@@ -4,7 +4,7 @@
 
 - The ADC is 16 bits and has 4 input channels.  It is used to acquire 2 VENG channels and two EEg channels.
 - The VENG channels are sampled at 20kHz.
-- The EEG channels are sampled at 500Hz.
+- The EEG channels are sampled at 1kHz.
 
 ## dsPIC firmware
 
